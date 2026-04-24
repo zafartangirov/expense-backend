@@ -65,7 +65,7 @@ public class EmailService {
             helper.setTo(toEmail);
             helper.setSubject("Expense Tracker — Emailni tasdiqlang");
 
-            String verifyUrl = "http://localhost:5173/verify-email?token=" + token;
+            String verifyUrl = "https://expensetrackerfrontend-tau.vercel.app/verify-email?token=" + token;
 
             String html = """
                 <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">

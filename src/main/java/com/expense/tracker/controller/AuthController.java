@@ -82,7 +82,7 @@ public class AuthController {
     public void githubCallback(
             @RequestParam String code,
             jakarta.servlet.http.HttpServletResponse response) throws Exception {
-        response.sendRedirect("http://localhost:5173/github/callback?code=" + code);
+        response.sendRedirect("https://expensetrackerfrontend-tau.vercel.app/github/callback?code=" + code);
     }
 
 
