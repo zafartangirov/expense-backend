@@ -6,6 +6,7 @@ import com.expense.tracker.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,6 +20,7 @@ public class UserService {
     private final ExpenseRepository expenseRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileUploadService fileUploadService;
+    private final SupabaseStorageService storageService;
 
     public UserProfileDTO getProfile(String email) {
         User user = userRepository.findByEmail(email)
@@ -72,13 +74,18 @@ public class UserService {
     }
 
     public UserProfileDTO uploadProfilePicture(String email,
-                                               org.springframework.web.multipart.MultipartFile file) throws Exception {
+                                               MultipartFile file) throws Exception {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi!"));
 
-        // Rasm yuklash
-        String pictureUrl = fileUploadService.uploadProfilePicture(file);
-        user.setProfilePicture(pictureUrl);
+        // Eski rasmni o'chirish
+        if (user.getProfilePicture() != null) {
+            storageService.deleteFile(user.getProfilePicture());
+        }
+
+        // Yangi rasmni yuklash
+        String imageUrl = storageService.uploadFile(file, "avatars");
+        user.setProfilePicture(imageUrl);
         userRepository.save(user);
 
         return getProfile(email);
@@ -88,18 +95,10 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Foydalanuvchi topilmadi!"));
 
-        // Eski rasmni o'chirish
         if (user.getProfilePicture() != null) {
-            try {
-                String filePath = "uploads/profile-pictures/" +
-                        Paths.get(user.getProfilePicture()).getFileName();
-                Files.deleteIfExists(Paths.get(filePath));
-            } catch (Exception e) {
-                System.out.println("Fayl o'chirishda xatolik: " + e.getMessage());
-            }
+            storageService.deleteFile(user.getProfilePicture());
+            user.setProfilePicture(null);
+            userRepository.save(user);
         }
-
-        user.setProfilePicture(null);
-        userRepository.save(user);
     }
 }
